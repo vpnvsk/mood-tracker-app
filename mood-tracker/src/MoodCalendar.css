@@ -1,0 +1,38 @@
+/* MoodCalendar.css */
+.mood-calendar {
+    text-align: center;
+  }
+  
+  .mood-count {
+    background-color: #f39c12;
+    color: white;
+    padding: 5px;
+    border-radius: 50%;
+  }
+  
+  .create-mood-btn {
+    background-color: #27ae60;
+    color: white;
+    font-size: 20px;
+    padding: 10px 20px;
+    border-radius: 50%;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    border: none;
+  }
+  
+  .create-mood-btn:hover {
+    background-color: #2ecc71;
+  }
+  
+  .moods-for-day {
+    margin-top: 20px;
+    text-align: left;
+  }
+  
+  .moods-for-day p {
+    font-size: 18px;
+    margin: 5px 0;
+  }
+  
