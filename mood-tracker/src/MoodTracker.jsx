@@ -1,29 +1,34 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { db, auth, storage } from "./firebase"; // Import Firebase and Storage
-import { collection, addDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Firebase storage methods
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import { ref, uploadString, getDownloadURL } from "firebase/storage"; // Firebase storage methods
 import MoodCalendar from "./MoodCalendar"; // Calendar component
+import Webcam from "react-webcam"; // Webcam library
 import "./MoodTracker.css";
 
 const MoodTracker = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
-  const [moodText, setMoodText] = useState(""); // Mood text input
-  const [selectedDate, setSelectedDate] = useState(new Date()); // Selected date
-  const [imageFile, setImageFile] = useState(null); // Image file state
-  const [imageURL, setImageURL] = useState(""); // Image URL after upload
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [moodText, setMoodText] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [isCameraOn, setIsCameraOn] = useState(false);
+  const [moods, setMoods] = useState([]); // <<< moods array
+
+  const webcamRef = useRef(null);
 
   // Open the modal
   const openModal = () => {
     console.log("Opening modal...");
     setIsModalOpen(true);
+    setIsCameraOn(true);
   };
 
   // Close the modal
   const closeModal = () => {
     setIsModalOpen(false);
-    setMoodText(""); // Reset mood text
-    setImageFile(null); // Reset image file
-    setImageURL(""); // Reset image URL
+    setMoodText("");
+    setCapturedImage(null);
+    setIsCameraOn(false);
   };
 
   // Log the modal state
@@ -31,49 +36,90 @@ const MoodTracker = () => {
     console.log("Modal State changed:", isModalOpen);
   }, [isModalOpen]);
 
+  // Fetch moods from Firestore
+  const fetchMoods = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const moodsRef = collection(db, "moods");
+      const q = query(moodsRef, where("userUid", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+
+      const moodsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setMoods(moodsData);
+      console.log("Fetched moods:", moodsData);
+    } catch (error) {
+      console.error("Error fetching moods:", error);
+    }
+  };
+
+  // Fetch moods on component mount
+  useEffect(() => {
+    fetchMoods();
+  }, []);
+
   // Handle form submission (save mood and image)
   const handleSubmit = async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
-
+  
     if (!user || !moodText.trim()) {
-      return; // Don't submit if no user or no mood text
+      alert("Please describe your mood.");
+      return;
     }
-
+  
+    if (!capturedImage) {
+      alert("Please take a photo before submitting.");
+      return;
+    }
+  
     try {
       let uploadedImageURL = "";
-      
-      // Upload image to Firebase Storage if there's a file
-      if (imageFile) {
-        const imageRef = ref(storage, `moods/${user.uid}/${imageFile.name}`);
-        await uploadBytes(imageRef, imageFile);
-        uploadedImageURL = await getDownloadURL(imageRef); // Get the uploaded image URL
-      }
-
-      // Get the date as a string in YYYY-MM-DD format
+  
+      // Upload captured image
+      const imageRef = ref(storage, `moods/${user.uid}/${Date.now()}.jpg`);
+      await uploadString(imageRef, capturedImage, "data_url");
+      uploadedImageURL = await getDownloadURL(imageRef);
+  
       const dateString = selectedDate.toISOString().split("T")[0];
-
-      // Add mood to Firestore
+  
+      // Save mood to Firestore
       await addDoc(collection(db, "moods"), {
         userUid: user.uid,
         description: moodText,
         date: dateString,
-        imageURL: uploadedImageURL, // Store the image URL if available
+        imageURL: uploadedImageURL,
       });
-
+  
       console.log("Mood saved!");
-      closeModal(); // Close the modal after saving the mood
+      closeModal();
+  
+      // Fetch updated moods
+      await fetchMoods();
     } catch (error) {
       console.error("Error saving mood:", error);
     }
   };
+  
 
-  // Handle image file selection
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file); // Store selected file in state
+  // Handle capture photo
+  const handleCapture = () => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    if (imageSrc) {
+      setCapturedImage(imageSrc);
+      setIsCameraOn(false);
     }
+  };
+
+  // Handle retake photo
+  const handleRetake = () => {
+    setCapturedImage(null);
+    setIsCameraOn(true);
   };
 
   return (
@@ -87,6 +133,22 @@ const MoodTracker = () => {
       <button onClick={openModal} className="new-mood-button">
         +
       </button>
+
+      {/* Show list of moods */}
+      <div className="moods-list">
+        {moods.map((mood) => (
+          <div key={mood.id} className="mood-item">
+            <p><strong>{mood.date}</strong>: {mood.description}</p>
+            {mood.imageURL && (
+              <img
+                src={mood.imageURL}
+                alt="Mood"
+                style={{ width: "100px", height: "100px", objectFit: "cover" }}
+              />
+            )}
+          </div>
+        ))}
+      </div>
 
       {/* Modal for Creating Mood */}
       <div className={`modal ${isModalOpen ? "show" : ""}`}>
@@ -103,12 +165,37 @@ const MoodTracker = () => {
               rows="4"
               required
             />
-            {/* Image upload input */}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
+
+            {/* Capture photo section */}
+            <div>
+              {isCameraOn && !capturedImage && (
+                <div>
+                  <Webcam
+                    audio={false}
+                    ref={webcamRef}
+                    screenshotFormat="image/jpeg"
+                    videoConstraints={{ facingMode: "user" }}
+                    style={{ width: "100%", maxWidth: 300 }}
+                  />
+                  <button type="button" onClick={handleCapture}>
+                    Capture Photo
+                  </button>
+                </div>
+              )}
+              {capturedImage && (
+                <div>
+                  <img
+                    src={capturedImage}
+                    alt="Captured"
+                    style={{ width: "100%", maxWidth: 300 }}
+                  />
+                  <button type="button" onClick={handleRetake}>
+                    Retake
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button type="submit">Save Mood</button>
           </form>
         </div>
