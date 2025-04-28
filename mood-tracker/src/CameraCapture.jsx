@@ -1,30 +1,55 @@
-// src/CameraCapture.js
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import Webcam from 'react-webcam';
-
+import './CameraCapture.css';  
 const CameraCapture = ({ onCapture }) => {
   const webcamRef = useRef(null);
   const [imageSrc, setImageSrc] = useState(null);
 
-  const capture = React.useCallback(() => {
+  const capture = useCallback(() => {
     const image = webcamRef.current.getScreenshot();
     setImageSrc(image);
-    onCapture(image); // Pass the captured image to parent
-  }, [webcamRef, onCapture]);
+    onCapture(image);
+  }, [onCapture]);
 
   return (
-    <div>
-      <Webcam
-        audio={false}
-        ref={webcamRef}
-        screenshotFormat="image/jpeg"
-        width="100%"
-        videoConstraints={{
-          facingMode: 'user',
-        }}
-      />
-      <button onClick={capture}>Capture</button>
-      {imageSrc && <img src={imageSrc} alt="Captured" />}
+    <div className="camera-container">
+      {!imageSrc ? (
+        <>
+          <div className="webcam-wrapper">
+            <Webcam
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              className="webcam-view"
+              videoConstraints={{ facingMode: 'user' }}
+            />
+          </div>
+          <button
+            type="button"
+            className="camera-button shutter-button"
+            onClick={capture}
+          >
+            Capture
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="preview-wrapper">
+            <img
+              src={imageSrc}
+              alt="Captured"
+              className="preview-image"
+            />
+          </div>
+          <button
+            type="button"
+            className="camera-button retake-button"
+            onClick={() => setImageSrc(null)}
+          >
+            Retake
+          </button>
+        </>
+      )}
     </div>
   );
 };

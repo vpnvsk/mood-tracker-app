@@ -7,6 +7,7 @@ import Webcam from "react-webcam";
 import useMoods from "./useMoods";
 import MoodRepresentation from "./MoodRepresentation";
 import "./MoodTracker.css";
+import "./CameraCapture.css";
 
 const MoodTracker = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -140,9 +141,9 @@ const MoodTracker = () => {
                     ref={webcamRef}
                     screenshotFormat="image/jpeg"
                     videoConstraints={{ facingMode: "user" }}
-                    style={{ width: "100%", maxWidth: 300 }}
+                    style={{ width: "100%", maxWidth: 300, borderRadius: "10px"}}
                   />
-                  <button type="button" onClick={handleCapture}>
+                  <button type="capture-button" onClick={handleCapture}>
                     Capture Photo
                   </button>
                 </div>
@@ -152,9 +153,9 @@ const MoodTracker = () => {
                   <img
                     src={capturedImage}
                     alt="Captured"
-                    style={{ width: "100%", maxWidth: 300 }}
+                    style={{ width: "100%", maxWidth: 300,   borderRadius: "10px" }}
                   />
-                  <button type="button" onClick={handleRetake}>
+                  <button type="capture-button" onClick={handleRetake}>
                     Retake
                   </button>
                 </div>
