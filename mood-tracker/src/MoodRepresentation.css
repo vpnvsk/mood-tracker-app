@@ -1,0 +1,93 @@
+    .mood-day {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .mood-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two columns initially */
+    gap: 15px;
+  }
+  
+  .mood-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+  }
+  
+  .mood-image {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    cursor: pointer;
+    margin-top: 10px;
+    border-radius: 5px;
+  }
+  
+  .image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .full-screen-image {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 10px;
+  }
+  
+  @media (max-width: 768px) {
+    .mood-cards {
+      grid-template-columns: 1fr; 
+    }
+  }
+
+  .mood-day {
+    margin-bottom: 40px;  
+  }
+  
+.mood-list {
+    width: 100%;
+    max-width: 600px;  
+    margin: 20px auto; 
+  }
+  
+  .mood-day .mood-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    justify-content: center;  
+    gap: 16px;
+  }
+  
+  .mood-day .mood-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  @media (max-width: 768px) {
+    .mood-day .mood-card {
+      flex: 0 1 calc(50% - 10px);
+      max-width: calc(50% - 10px);
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .mood-day .mood-card {
+      flex: 0 1 100%;
+      max-width: 100%;
+    }
+  }
+  

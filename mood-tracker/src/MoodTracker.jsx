@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
-import { db, auth, storage } from "./firebase"; // Import Firebase and Storage
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage"; // Firebase storage methods
-import MoodCalendar from "./MoodCalendar"; // Calendar component
-import Webcam from "react-webcam"; // Webcam library
+import React, { useState, useRef } from "react";
+import { db, auth, storage } from "./firebase";
+import { collection, addDoc } from "firebase/firestore";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import MoodCalendar from "./MoodCalendar";
+import Webcam from "react-webcam";
+import useMoods from "./useMoods";
+import MoodRepresentation from "./MoodRepresentation";
 import "./MoodTracker.css";
 
 const MoodTracker = () => {
@@ -12,18 +14,15 @@ const MoodTracker = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [capturedImage, setCapturedImage] = useState(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
-  const [moods, setMoods] = useState([]); // <<< moods array
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const webcamRef = useRef(null);
 
-  // Open the modal
   const openModal = () => {
-    console.log("Opening modal...");
     setIsModalOpen(true);
     setIsCameraOn(true);
   };
 
-  // Close the modal
   const closeModal = () => {
     setIsModalOpen(false);
     setMoodText("");
@@ -31,83 +30,52 @@ const MoodTracker = () => {
     setIsCameraOn(false);
   };
 
-  // Log the modal state
-  useEffect(() => {
-    console.log("Modal State changed:", isModalOpen);
-  }, [isModalOpen]);
-
-  // Fetch moods from Firestore
-  const fetchMoods = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    try {
-      const moodsRef = collection(db, "moods");
-      const q = query(moodsRef, where("userUid", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-
-      const moodsData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      setMoods(moodsData);
-      console.log("Fetched moods:", moodsData);
-    } catch (error) {
-      console.error("Error fetching moods:", error);
-    }
+  const formatSelectedDate = (date) => {
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
 
-  // Fetch moods on component mount
-  useEffect(() => {
-    fetchMoods();
-  }, []);
+  const { moods } = useMoods(selectedDate); 
 
-  // Handle form submission (save mood and image)
+  const handleDateSelect = (date) => {
+    setSelectedDate(date); 
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
-  
     if (!user || !moodText.trim()) {
       alert("Please describe your mood.");
       return;
     }
-  
     if (!capturedImage) {
       alert("Please take a photo before submitting.");
       return;
     }
-  
+
     try {
-      let uploadedImageURL = "";
-  
-      // Upload captured image
       const imageRef = ref(storage, `moods/${user.uid}/${Date.now()}.jpg`);
       await uploadString(imageRef, capturedImage, "data_url");
-      uploadedImageURL = await getDownloadURL(imageRef);
-  
-      const dateString = selectedDate.toISOString().split("T")[0];
-  
-      // Save mood to Firestore
+      const uploadedImageURL = await getDownloadURL(imageRef);
+
+      const dateString = selectedDate.toLocaleDateString("en-CA");
       await addDoc(collection(db, "moods"), {
         userUid: user.uid,
         description: moodText,
         date: dateString,
         imageURL: uploadedImageURL,
       });
-  
-      console.log("Mood saved!");
+
       closeModal();
-  
-      // Fetch updated moods
-      await fetchMoods();
     } catch (error) {
       console.error("Error saving mood:", error);
     }
   };
-  
 
-  // Handle capture photo
   const handleCapture = () => {
     const imageSrc = webcamRef.current.getScreenshot();
     if (imageSrc) {
@@ -116,57 +84,54 @@ const MoodTracker = () => {
     }
   };
 
-  // Handle retake photo
   const handleRetake = () => {
     setCapturedImage(null);
     setIsCameraOn(true);
   };
 
   return (
-    <div>
-      <h1>Welcome to your Mood Tracker</h1>
+    <div className="mood-tracker-container">
+      <h1>How was your day today?</h1>
 
-      {/* Render the MoodCalendar component */}
-      <MoodCalendar selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+      <div className="mood-calendar-container">
+        <MoodCalendar
+          selectedDate={selectedDate}
+          setSelectedDate={handleDateSelect}
+        />
+      </div>
 
-      {/* New Mood Button */}
+      <p className="selected-date-label">
+        Selected Date: {formatSelectedDate(selectedDate)}
+      </p>
+
       <button onClick={openModal} className="new-mood-button">
         +
       </button>
 
-      {/* Show list of moods */}
-      <div className="moods-list">
-        {moods.map((mood) => (
-          <div key={mood.id} className="mood-item">
-            <p><strong>{mood.date}</strong>: {mood.description}</p>
-            {mood.imageURL && (
-              <img
-                src={mood.imageURL}
-                alt="Mood"
-                style={{ width: "100px", height: "100px", objectFit: "cover" }}
-              />
-            )}
-          </div>
-        ))}
-      </div>
+      <MoodRepresentation moods={moods} />
 
-      {/* Modal for Creating Mood */}
+      {/* Image Popup */}
+      {selectedImage && (
+        <div className="image-popup" onClick={() => setSelectedImage(null)}>
+          <img src={selectedImage} alt="Expanded Mood" />
+        </div>
+      )}
+
+      {/* Modal */}
       <div className={`modal ${isModalOpen ? "show" : ""}`}>
         <div className="modal-content">
           <button className="close-btn" onClick={closeModal}>
             &times;
           </button>
-          <h2>Create a New Mood</h2>
+          <h2>Add a Mood</h2>
           <form onSubmit={handleSubmit}>
             <textarea
               value={moodText}
               onChange={(e) => setMoodText(e.target.value)}
-              placeholder="Describe your mood..."
+              placeholder="How do you feel today?"
               rows="4"
               required
             />
-
-            {/* Capture photo section */}
             <div>
               {isCameraOn && !capturedImage && (
                 <div>
@@ -195,7 +160,6 @@ const MoodTracker = () => {
                 </div>
               )}
             </div>
-
             <button type="submit">Save Mood</button>
           </form>
         </div>

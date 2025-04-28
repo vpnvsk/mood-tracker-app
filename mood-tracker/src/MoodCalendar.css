@@ -1,38 +1,25 @@
-/* MoodCalendar.css */
+.mood-calendar-container {
+  width: 100%;
+  padding: 20px 0;
+  text-align: center;  
+}
+
 .mood-calendar {
-    text-align: center;
+  width: 100%;
+  max-width: 900px;    
+  margin: 0 auto;      
+}
+
+.mood-calendar .react-calendar {
+  width: 100% !important; 
+}
+
+.mood-calendar {
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .mood-calendar {
+    max-width: 90%;
   }
-  
-  .mood-count {
-    background-color: #f39c12;
-    color: white;
-    padding: 5px;
-    border-radius: 50%;
-  }
-  
-  .create-mood-btn {
-    background-color: #27ae60;
-    color: white;
-    font-size: 20px;
-    padding: 10px 20px;
-    border-radius: 50%;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    border: none;
-  }
-  
-  .create-mood-btn:hover {
-    background-color: #2ecc71;
-  }
-  
-  .moods-for-day {
-    margin-top: 20px;
-    text-align: left;
-  }
-  
-  .moods-for-day p {
-    font-size: 18px;
-    margin: 5px 0;
-  }
-  
+}
