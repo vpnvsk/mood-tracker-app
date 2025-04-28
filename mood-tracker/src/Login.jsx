@@ -11,7 +11,7 @@ function AuthPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      alert("Logged in with Google!");
+      // alert("Logged in with Google!");
     } catch (error) {
       alert(error.message);
     }
@@ -22,10 +22,10 @@ function AuthPage() {
     try {
       if (isSignIn) {
         await signInWithEmailAndPassword(auth, email, password);
-        alert("Logged in!");
+        // alert("Logged in!");
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
-        alert("Account created!");
+        // alert("Account created!");
       }
     } catch (error) {
       alert(error.message);
