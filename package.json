@@ -1,9 +1,9 @@
 {
   "name": "mood-tracker-app",
+  "homepage": "https://vpnvsk.github.io/mood-tracker-app/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://vpnvsk.github.io/mood-tracker-app/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
