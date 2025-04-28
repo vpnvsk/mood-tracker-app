@@ -233,3 +233,64 @@ button[type="capture-button"]:hover {
   }
 }
 
+/* MoodTracker.css */
+
+/* 1) Keep header in one row, always */
+.app-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 60px;
+  background-color: #007bff;
+  display: flex;
+  justify-content: space-between;  /* title left, button right */
+  align-items: center;
+  padding: 0 1rem;
+  z-index: 100;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* 2) Title on the left */
+.app-header h1 {
+  color: #fff;
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+/* 3) Logout button forced to the right */
+.logout-button {
+  margin-left: auto;               /* pushes it as far right as possible */
+  background: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.25rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.logout-button:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* 4) Make sure we don’t stack on mobile */
+@media (max-width: 480px) {
+  .app-header {
+    flex-direction: row;            /* stay in one row */
+    height: 60px;
+    padding: 0 0.5rem;
+  }
+  .app-header h1 {
+    font-size: 1.1rem;
+  }
+  .logout-button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+/* 5) Push body content below fixed header */
+.mood-tracker-container {
+  padding-top: 80px;  /* header height + breathing room */
+}
+
+

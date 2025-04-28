@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { db, auth, storage } from "./firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
@@ -10,6 +11,7 @@ import "./MoodTracker.css";
 import "./CameraCapture.css";
 
 const MoodTracker = () => {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [moodText, setMoodText] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -20,6 +22,11 @@ const MoodTracker = () => {
 
 
   const webcamRef = useRef(null);
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    navigate("/login");
+  };
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -72,9 +79,9 @@ const MoodTracker = () => {
         date: dateString,
         imageURL: uploadedImageURL,
       });
-      setRefreshKey((k) => k + 1);
 
       closeModal();
+      setRefreshKey((k) => k + 1);
     } catch (error) {
       console.error("Error saving mood:", error);
     }
@@ -95,7 +102,13 @@ const MoodTracker = () => {
 
   return (
     <div className="mood-tracker-container">
-      <h1>How was your day today?</h1>
+      {/* ————— Header ————— */}
+      <header className="app-header">
+        <h1>Mood Tracker</h1>
+        <button className="logout-button" onClick={handleLogout}>
+          Logout
+        </button>
+      </header>
 
       <div className="mood-calendar-container">
        <MoodCalendar
