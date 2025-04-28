@@ -19,6 +19,8 @@ const MoodTracker = () => {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [moods, setMoods] = useState([]);
+
 
 
   const webcamRef = useRef(null);
@@ -49,8 +51,12 @@ const MoodTracker = () => {
     });
   };
 
-  const { moods } = useMoods(selectedDate, refreshKey);
+  const { moods: fetchedMoods } = useMoods(selectedDate, refreshKey);
 
+  React.useEffect(() => {
+    setMoods(fetchedMoods);
+  }, [fetchedMoods]);
+  
   const handleDateSelect = (date) => {
     setSelectedDate(date); 
   };
@@ -126,7 +132,7 @@ const MoodTracker = () => {
         +
       </button>
 
-      <MoodRepresentation moods={moods} />
+      <MoodRepresentation moods={moods} setMoods={setMoods} setRefreshKey={setRefreshKey} />
 
       {/* Image Popup */}
       {selectedImage && (
