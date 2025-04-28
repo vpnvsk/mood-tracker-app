@@ -6,6 +6,9 @@ const CameraCapture = ({ onCapture }) => {
   const [imageSrc, setImageSrc] = useState(null);
 
   const capture = useCallback(() => {
+    if (navigator.vibrate) {
+      navigator.vibrate(100); 
+    }
     const image = webcamRef.current.getScreenshot();
     setImageSrc(image);
     onCapture(image);
