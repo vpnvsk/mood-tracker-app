@@ -16,6 +16,8 @@ const MoodTracker = () => {
   const [capturedImage, setCapturedImage] = useState(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
 
   const webcamRef = useRef(null);
 
@@ -40,7 +42,7 @@ const MoodTracker = () => {
     });
   };
 
-  const { moods } = useMoods(selectedDate); 
+  const { moods } = useMoods(selectedDate, refreshKey);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date); 
@@ -70,6 +72,7 @@ const MoodTracker = () => {
         date: dateString,
         imageURL: uploadedImageURL,
       });
+      setRefreshKey((k) => k + 1);
 
       closeModal();
     } catch (error) {
@@ -95,10 +98,11 @@ const MoodTracker = () => {
       <h1>How was your day today?</h1>
 
       <div className="mood-calendar-container">
-        <MoodCalendar
-          selectedDate={selectedDate}
-          setSelectedDate={handleDateSelect}
-        />
+       <MoodCalendar
+         selectedDate={selectedDate}
+         setSelectedDate={handleDateSelect}
+         refreshKey={refreshKey}
+       />
       </div>
 
       <p className="selected-date-label">

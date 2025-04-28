@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { db, auth } from "./firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
-const useMoods = (selectedDate) => {
-  const [moods, setMoods] = useState([]);
+const useMoods = (selectedDate, refreshKey) => {
+    const [moods, setMoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -50,7 +50,7 @@ const useMoods = (selectedDate) => {
     };
 
     fetchMoods();
-  }, [selectedDate]);
+}, [selectedDate, refreshKey]); 
 
   return { moods, loading, error };
 };
